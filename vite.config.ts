@@ -1,7 +1,9 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { hotReloadPlugin } from "./vite-plugin-hot-reload";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-})
+  base: "http://localhost:5500/",
+  plugins: [vue(), hotReloadPlugin({ port: 6621 })],
+});
