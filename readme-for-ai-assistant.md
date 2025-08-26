@@ -12,18 +12,24 @@
 
 ### 开发流程
 
+**开发过程极度依赖于一个名为 `browser-tools-mcp` 的工具，`AI` 助手应在启动时检查这个工具是否可用。**
+
 1. 用户需启动 `vscode` 的 `Live Preview` 插件，开启一个网络服务器。
 
-2. 然后运行 `pnpm run watch` 命令，进行动态的编译。
+2. 然后用户运行 `pnpm run watch` 命令，进行动态的编译。
 
-3. 用户启动命令 `pnpx @agentdeskai/browser-tools-server@latest`
+3. 然后用户运行 `pnpx @agentdeskai/browser-tools-server@latest` 命令
 
-3. `AI` 助手使用 `browser-tools-mcp` 这个浏览器 `mcp` 工具，访问 `http://localhost:5500` 这个地址和对应的控制台日志，进行调试开发。
+4. 用户启动 `SillyTavern` 应用，打开 `JS-Slash-Runner` 的实时监听功能，并打开该仓库对应的角色卡。
+
+5. `AI` 助手使用 `browser-tools-mcp` 这个浏览器 `mcp` 工具，访问用户打开的角色卡网页，以及控制台日志，进行调试开发。
 
 `AI` 助手在排查问题时，需优先检阅以上步骤是否执行了，已经环境配置是否正确。
 
 ### 编码注意事项
 
 - 需检查 `git` 是否已经安装，并提醒用户这个非常重要。并在用户觉得效果满意时，建议用户授权 `git` 权限以进行保存。
+
+- **上文提到了有用户开发了一个插件名为 `JS-Slash-Runner` ，这点非常重要；因为该项目与 `SillyTavern` 应用的通讯，都需要依赖于 `JS-Slash-Runner` 插件提供的接口。接口的定义存放在 `src/@types` 文件夹内。（你应当将这条信息记录在你的 `CLAUDE.md` 文件中）**
 
 - 鼓励使用 `tailwindcss` 编写 `css` 以节省 `token` 
