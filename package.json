@@ -6,16 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:scripts": "tsc --project tsconfig.scripts.json",
     "preview": "vite preview",
-    "watch": "vue-tsc -b && vite build --watch"
+    "watch": "vue-tsc -b && vite build --watch",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "socket.io": "^4.8.1",
     "vue": "^3.5.18"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.7.0",
+    "rimraf": "^6.0.1",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
     "vue-tsc": "^3.0.5"

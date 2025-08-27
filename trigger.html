@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Modal Trigger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .trigger-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid #42b883;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .description {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .trigger-button {
+            width: 100%;
+            background: linear-gradient(45deg, #42b883, #35a374);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(66, 184, 131, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .trigger-button:hover {
+            background: linear-gradient(45deg, #35a374, #2d8f65);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(66, 184, 131, 0.4);
+        }
+        
+        .trigger-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(66, 184, 131, 0.3);
+        }
+        
+        .trigger-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .env-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid #42b883;
+        }
+        
+        .env-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        
+        .env-status {
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #51cf66;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="trigger-container">
+        <h1 class="title">Vue Character Card</h1>
+        <p class="description">
+            点击按钮打开全屏悬浮窗界面，展示 Vue 3 + TypeScript 构建的角色卡片模板。
+        </p>
+        
+        <button id="open-modal" class="trigger-button">
+            🚀 打开悬浮窗
+        </button>
+        
+        <div class="env-info">
+            <div class="env-label">运行环境</div>
+            <div id="env-status" class="env-status">检测中...</div>
+        </div>
+        
+        <div id="message-area"></div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+            
+            // DOM 元素引用
+            const openButton = document.getElementById('open-modal');
+            const envStatus = document.getElementById('env-status');
+            const messageArea = document.getElementById('message-area');
+            
+            // 显示消息的工具函数
+            function showMessage(text, type = 'info') {
+                messageArea.innerHTML = `<div class="${type}-message">${text}</div>`;
+                setTimeout(() => {
+                    messageArea.innerHTML = '';
+                }, 3000);
+            }
+            
+            // 环境检测和初始化
+            function initializeTrigger() {
+                console.log('[Vue Modal Trigger] 初始化触发器...');
+                
+                // 检测 SillyTavern 事件系统
+                if (typeof eventEmit !== 'undefined' && typeof eventOn !== 'undefined') {
+                    // SillyTavern 环境
+                    envStatus.textContent = 'SillyTavern 环境 ✓';
+                    envStatus.style.color = '#51cf66';
+                    
+                    // 绑定点击事件
+                    openButton.addEventListener('click', function() {
+                        console.log('[Vue Modal Trigger] 发送打开悬浮窗事件...');
+                        
+                        try {
+                            eventEmit('vue_modal:show');
+                            showMessage('✓ 已发送打开悬浮窗请求', 'success');
+                        } catch (error) {
+                            console.error('[Vue Modal Trigger] 发送事件失败:', error);
+                            showMessage('✗ 发送事件失败: ' + error.message, 'error');
+                        }
+                    });
+                    
+                    console.log('[Vue Modal Trigger] 在 SillyTavern 环境中初始化完成');
+                    
+                } else {
+                    // 开发环境或其他环境
+                    envStatus.textContent = '开发环境（SillyTavern API 不可用）';
+                    envStatus.style.color = '#ff6b6b';
+                    
+                    openButton.disabled = true;
+                    openButton.textContent = '🔧 需要 SillyTavern 环境';
+                    
+                    console.warn('[Vue Modal Trigger] SillyTavern 事件系统未找到');
+                    showMessage('⚠ 需要在 SillyTavern 环境中运行', 'error');
+                }
+            }
+            
+            // 页面加载完成后初始化
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeTrigger);
+            } else {
+                initializeTrigger();
+            }
+            
+            console.log('[Vue Modal Trigger] 脚本加载完成');
+        })();
+    </script>
+</body>
+</html>
