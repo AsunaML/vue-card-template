@@ -14,6 +14,13 @@
 
 /// <reference path="./types.d.ts" />
 
+function assert<T>(value: T | null | undefined, msg = "Unexpected null/undefined"): T {
+  if (value == null) {
+    throw new Error(msg);
+  }
+  return value;
+}
+
 interface VueModalConfig {
     modalUrl: string;
     eventName: string;
@@ -91,7 +98,7 @@ class VueModalController {
             this.handlePostMessage(event);
         };
         
-        window.addEventListener('message', this.messageListener);
+        assert(window.top).addEventListener('message', this.messageListener);
 
         this.log(`事件监听器注册完成: ${this.config.eventName}`);
     }
@@ -226,7 +233,7 @@ class VueModalController {
 
         // 移除事件监听
         if (this.messageListener) {
-            window.removeEventListener('message', this.messageListener);
+            assert(window.top).removeEventListener('message', this.messageListener);
             this.messageListener = null;
         }
 
