@@ -32,4 +32,21 @@
 
 - **上文提到了有用户开发了一个插件名为 `JS-Slash-Runner` ，这点非常重要；因为该项目与 `SillyTavern` 应用的通讯，都需要依赖于 `JS-Slash-Runner` 插件提供的接口。接口的定义存放在 `src/@types` 文件夹内。（你应当将这条信息记录在你的 `CLAUDE.md` 文件中）**
 
-- 鼓励使用 `tailwindcss` 编写 `css` 以节省 `token` 
+- 鼓励使用 `tailwindcss` 编写 `css` 以节省 `token`
+
+## 重要修复记录
+
+### 2025-08-31: PostMessage 通信修复
+
+修复了一个关键的通信问题：酒馆脚本无法收到 Vue 应用发来的关闭消息。
+
+**问题原因**：`tavern-script/modal-controller.ts` 中使用的 `window` 对象不是顶层窗口，导致无法接收跨 iframe 的 postMessage 事件。
+
+**修复方案**：
+- 添加了 `assert()` 工具函数确保空值安全
+- 将消息监听器从 `window` 改为 `window.top`
+- 确保在正确的窗口上下文中监听和移除事件
+
+**影响**：修复后，Vue 应用可以正常通知酒馆脚本关闭全屏模态框，完善了双层架构的通信机制。
+
+提交记录：`015e13d` 
