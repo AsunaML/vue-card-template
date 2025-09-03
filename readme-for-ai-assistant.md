@@ -28,6 +28,67 @@
 
 - 鼓励使用 `tailwindcss` 编写 `css` 以节省 `token`
 
+## PostMessage Communication Architecture Design
+
+### Background
+Since the Vue application runs in an iframe sandbox, **postMessage is the ONLY communication channel** between:
+- **Server**: tavern-script environment (酒馆助手脚本端)
+- **Client**: Vue application in iframe (Vue应用端)
+
+### Architectural Design
+
+**Core Pattern**: Event-Driven + Command Pattern + Factory Pattern
+
+#### 1. Message Bus System
+- Centralized management of postMessage communication
+- Handles message serialization, error handling, timeouts
+- Supports request-response patterns with message ID tracking
+
+#### 2. Command Handler Architecture
+```typescript
+// Unified message interface
+interface Message {
+  id: string;
+  type: string; 
+  data?: any;
+  timestamp: number;
+  needReply?: boolean;
+}
+
+// Handler interface
+interface MessageHandler {
+  handle(message: Message): Promise<any>;
+  canHandle(type: string): boolean;
+}
+```
+
+#### 3. Factory Pattern Implementation
+- `MessageHandlerFactory`: Creates appropriate handlers based on message type
+- `HandlerRegistry`: Dynamic registration and management of handler types
+- Extensible design for adding new message types
+
+#### 4. Recommended File Structure
+```
+communication/
+├── MessageBus.ts          # Core message bus implementation
+├── types.ts              # Message type definitions
+├── registry.ts           # Handler registration system
+├── handlers/             # Individual message handlers
+│   ├── CloseModalHandler.ts
+│   ├── DataSyncHandler.ts
+│   └── ErrorHandler.ts
+└── index.ts             # Unified exports
+```
+
+#### 5. Design Benefits
+- **Type Safety**: Full TypeScript support for compile-time message validation
+- **Extensibility**: Easy to add new message types and handlers
+- **Testability**: Isolated handlers enable comprehensive unit testing
+- **Consistency**: Same architecture used on both server and client sides
+- **Decoupling**: Senders don't need to know handler implementation details
+
+**Important**: Both server and client should implement this architecture for consistent, maintainable communication patterns.
+
 ## 重要修复记录
 
 ### 2025-08-31: PostMessage 通信修复
