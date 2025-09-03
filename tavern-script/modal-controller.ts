@@ -23,7 +23,6 @@ function assert<T>(value: T | null | undefined, msg = "Unexpected null/undefined
 
 interface VueModalConfig {
     modalUrl: string;
-    eventName: string;
     debugMode: boolean;
 }
 
@@ -35,7 +34,6 @@ class VueModalController {
     constructor(config?: Partial<VueModalConfig>) {
         this.config = {
             modalUrl: 'http://localhost:5500/',
-            eventName: 'vue_modal:show',
             debugMode: true,
             ...config
         };
@@ -60,13 +58,13 @@ class VueModalController {
     private checkEnvironment(): boolean {
         // 检查 SillyTavern 事件系统
         if (typeof eventOn === 'undefined' || typeof eventEmit === 'undefined') {
-            console.error('[Vue Modal] SillyTavern 事件系统不可用');
+            this.log('SillyTavern 事件系统不可用', 'error');
             return false;
         }
 
         // 检查 jQuery
         if (typeof $ === 'undefined') {
-            console.error('[Vue Modal] jQuery 不可用');
+            this.log('jQuery 不可用', 'error');
             return false;
         }
 
@@ -78,7 +76,7 @@ class VueModalController {
             $testElement.remove();
             this.log('DOM操作权限验证通过 ✓');
         } catch (error) {
-            console.error('[Vue Modal] DOM操作权限不足:', error);
+            this.log(`DOM操作权限不足: ${error}`, 'error');
             return false;
         }
 
@@ -87,9 +85,11 @@ class VueModalController {
     }
 
     private registerEventListeners(): void {
+        const eventName = 'vue_modal:show';
+        
         // 监听来自 trigger.html 的事件
-        eventOn(this.config.eventName, () => {
-            this.log(`收到事件: ${this.config.eventName}`);
+        eventOn(eventName, () => {
+            this.log(`收到事件: ${eventName}`);
             this.showModal();
         });
 
@@ -100,17 +100,14 @@ class VueModalController {
         
         assert(window.top).addEventListener('message', this.messageListener);
 
-        this.log(`事件监听器注册完成: ${this.config.eventName}`);
+        this.log(`事件监听器注册完成: ${eventName}`);
     }
 
     private handlePostMessage(event: MessageEvent): void {
         // 安全检查：验证消息来源
-        const allowedOrigins = [
-            'http://localhost:5500',
-            'http://127.0.0.1:5500'
-        ];
-
-        if (!allowedOrigins.includes(event.origin)) {
+        const modalOrigin = new URL(this.config.modalUrl).origin;
+        
+        if (event.origin !== modalOrigin) {
             return; // 忽略不信任的消息
         }
 
@@ -243,7 +240,7 @@ class VueModalController {
         this.log('Vue Modal Controller 已销毁');
     }
 
-    private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
+    public log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
         if (!this.config.debugMode) {
             return;
         }
@@ -271,6 +268,7 @@ class VueModalController {
 (function() {
     // 防止重复初始化
     if (window.vueModalController) {
+        // 这里用临时变量因为新实例还未创建
         console.log('[Vue Modal] 控制器已存在，销毁旧实例...');
         window.vueModalController.destroy();
     }
@@ -278,7 +276,8 @@ class VueModalController {
     // 创建新实例
     window.vueModalController = new VueModalController();
     
-    console.log('[Vue Modal] 控制器已就绪，等待触发事件...');
+    // 现在可以使用新实例的 log 方法
+    window.vueModalController.log('控制器已就绪，等待触发事件...');
 })();
 
 // 注意：在浏览器环境中，类型和类通过全局变量暴露
