@@ -12,17 +12,11 @@
 
 ### 开发流程
 
-**开发过程极度依赖于一个名为 `browser-tools-mcp` 的工具，`AI` 助手应在启动时检查这个工具是否可用。**
+**开发过程极度依赖于一个名为 `playwright` 的MCP工具，`AI` 助手应在启动时检查这个工具是否可用。**
 
-1. 用户需启动 `vscode` 的 `Live Preview` 插件，开启一个网络服务器。
+1. todo, wait to write (not edit it now)
 
-2. 然后用户运行 `pnpm run watch` 命令，进行动态的编译。
-
-3. 然后用户运行 `pnpx @agentdeskai/browser-tools-server@latest` 命令
-
-4. 用户启动 `SillyTavern` 应用，打开 `JS-Slash-Runner` 的实时监听功能，并打开该仓库对应的角色卡。
-
-5. `AI` 助手使用 `browser-tools-mcp` 这个浏览器 `mcp` 工具，访问用户打开的角色卡网页，以及控制台日志，进行调试开发。
+2. `AI` 助手使用 `playwright` 这个浏览器 `mcp` 工具，访问用户打开的角色卡网页，以及控制台日志，进行调试开发。
 
 `AI` 助手在排查问题时，需优先检阅以上步骤是否执行了，已经环境配置是否正确。
 
