@@ -12,6 +12,9 @@ importers:
         specifier: ^3.5.18
         version: 3.5.20(typescript@5.8.3)
     devDependencies:
+      '@types/jquery':
+        specifier: ^3.5.33
+        version: 3.5.33
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
         version: 6.0.1(vite@7.1.3(@types/node@24.3.0))(vue@3.5.20(typescript@5.8.3))
@@ -327,8 +330,14 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
+  '@types/jquery@3.5.33':
+    resolution: {integrity: sha512-SeyVJXlCZpEki5F0ghuYe+L+PprQta6nRZqhONt9F13dWBtR/ftoaIbdRQ7cis7womE+X2LKhsDdDtkkDhJS6g==}
+
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
+
+  '@types/sizzle@2.3.10':
+    resolution: {integrity: sha512-TC0dmN0K8YcWEAEfiPi5gJP14eJe30TTGjkvek3iM/1NdHHsdCA/Td6GvNndMOo/iSnIsZ4HuuhrYPDAmbxzww==}
 
   '@vitejs/plugin-vue@6.0.1':
     resolution: {integrity: sha512-+MaE752hU0wfPFJEUAIxqw18+20euHHdxVtMvbFcOEpjEyfqXH/5DCoTHiVJ0J29EhTJdoTkjEv5YBKU9dnoTw==}
@@ -838,10 +847,16 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
+  '@types/jquery@3.5.33':
+    dependencies:
+      '@types/sizzle': 2.3.10
+
   '@types/node@24.3.0':
     dependencies:
       undici-types: 7.10.0
     optional: true
+
+  '@types/sizzle@2.3.10': {}
 
   '@vitejs/plugin-vue@6.0.1(vite@7.1.3(@types/node@24.3.0))(vue@3.5.20(typescript@5.8.3))':
     dependencies:

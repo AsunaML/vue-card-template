@@ -15,7 +15,10 @@
     "forceConsistentCasingInFileNames": true,
     
     // 浏览器环境类型支持
-    "lib": ["ES2020", "DOM"]
+    "lib": ["ES2020", "DOM"],
+    
+    // 全局类型支持（仅限 tavern-script 环境）
+    "types": ["jquery"]
   },
   "include": [
     "tavern-script/**/*"
