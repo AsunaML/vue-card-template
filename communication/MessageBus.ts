@@ -23,13 +23,18 @@ import {
 export class MessageBusImpl implements MessageBus {
   private config: MessageBusConfig
   private handlerRegistry: HandlerRegistry
-  private messageListener!: (event: MessageEvent) => void
-  private pendingRequests = new Map<string, {
+  private messageListener: (event: MessageEvent) => void = this.handleMessage.bind(this)
+  private pendingRequests = new Map<string, {  // 期待回复的消息列表，指定时间没有接受到回复后，抛出异常
     resolve: (value: any) => void
     reject: (error: any) => void
-    timeout: number
+    timerId: number
   }>()
   private destroyed = false
+  private context: MessageHandlerContext = {
+    reply: (original, data) => this.sendReply(original, data),
+    replyError: (original, error) => this.sendReplyError(original, error),
+    log: (msg, level) => this.log(msg, level)
+ }
 
   constructor(
     config: Partial<MessageBusConfig>,
@@ -49,16 +54,14 @@ export class MessageBusImpl implements MessageBus {
   }
 
   private initialize(): void {
-    const messageHandler = this.handleMessage.bind(this)
-    this.messageListener = messageHandler
     
     if (this.config.environment === 'server') {
       // 服务端：监听来自 iframe 的消息
       const topWindow = window.top || window
-      topWindow.addEventListener('message', messageHandler)
+      topWindow.addEventListener('message', this.messageListener)
     } else {
       // 客户端：监听来自父窗口的消息
-      window.addEventListener('message', messageHandler)
+      window.addEventListener('message', this.messageListener)
     }
 
     this.log('MessageBus initialized', 'info')
@@ -100,15 +103,9 @@ export class MessageBusImpl implements MessageBus {
       }
 
       try {
-        const context: MessageHandlerContext = {
-          reply: (original, data) => this.sendReply(original, data),
-          replyError: (original, error) => this.sendReplyError(original, error),
-          log: (msg, level) => this.log(msg, level)
-        }
-
         // 临时设置处理器上下文（如果处理器需要的话）
         if ('setContext' in handler && typeof handler.setContext === 'function') {
-          (handler as any).setContext(context)
+          (handler as any).setContext(this.context)
         }
 
         const result = await handler.handle(message)
@@ -139,7 +136,7 @@ export class MessageBusImpl implements MessageBus {
       return
     }
 
-    clearTimeout(pending.timeout)
+    clearTimeout(pending.timerId)
     this.pendingRequests.delete(reply.replyTo)
 
     if (reply.success) {
@@ -217,12 +214,12 @@ export class MessageBusImpl implements MessageBus {
     const fullMessage = this.createMessage({ ...message, needReply: true })
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+      const timerId = setTimeout(() => {
         this.pendingRequests.delete(fullMessage.id)
         reject(new MessageTimeoutError(fullMessage.id, this.config.messageTimeout))
       }, this.config.messageTimeout)
 
-      this.pendingRequests.set(fullMessage.id, { resolve, reject, timeout })
+      this.pendingRequests.set(fullMessage.id, { resolve, reject, timerId: timerId })
 
       this.send(fullMessage).catch(reject)
     })
@@ -273,7 +270,7 @@ export class MessageBusImpl implements MessageBus {
 
     // 清理待处理的请求
     for (const [, pending] of this.pendingRequests) {
-      clearTimeout(pending.timeout)
+      clearTimeout(pending.timerId)
       pending.reject(new MessageBusError('MessageBus destroyed', 'BUS_DESTROYED'))
     }
     this.pendingRequests.clear()
