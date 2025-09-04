@@ -4,20 +4,24 @@
  * 处理来自客户端的错误报告
  */
 
-import type { BaseMessage, MessageHandler, MessageHandlerContext, ModalErrorMessage } from '../types'
+import { MessageHandler } from '../types'
+import type { BaseMessage, ModalErrorMessage } from '../types'
 
-export class ErrorHandler implements MessageHandler {
-  name = 'ErrorHandler'
-  private context?: MessageHandlerContext
+export class ErrorHandler extends MessageHandler {
+
   private errorCount = 0
   private lastErrorTime = 0
 
-  setContext(context: MessageHandlerContext): void {
-    this.context = context
+  constructor() {
+    super()
   }
 
-  canHandle(type: string): boolean {
-    return type === 'MODAL_ERROR'
+  getHandlerName() {
+    return 'ErrorHandler'
+  }
+
+  getHandleTypes(): Array<string> {
+      return ['MODAL_ERROR']
   }
 
   async handle(message: BaseMessage): Promise<void> {
@@ -160,13 +164,5 @@ export class ErrorHandler implements MessageHandler {
     this.errorCount = 0
     this.lastErrorTime = 0
     this.log('Error statistics reset')
-  }
-
-  private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    if (this.context) {
-      this.context.log(`[${this.name}] ${message}`, level)
-    } else {
-      console.log(`[${this.name}] ${message}`)
-    }
   }
 }

@@ -4,18 +4,21 @@
  * 处理来自客户端的模态框就绪通知
  */
 
-import type { BaseMessage, MessageHandler, MessageHandlerContext, ModalReadyMessage } from '../types'
+import { MessageHandler } from '../types'
+import type { BaseMessage, ModalReadyMessage } from '../types'
 
-export class ModalReadyHandler implements MessageHandler {
-  name = 'ModalReadyHandler'
-  private context?: MessageHandlerContext
+export class ModalReadyHandler extends MessageHandler {
 
-  setContext(context: MessageHandlerContext): void {
-    this.context = context
+  constructor() {
+    super()
   }
 
-  canHandle(type: string): boolean {
-    return type === 'MODAL_READY'
+  getHandlerName() {
+    return 'ModalReadyHandler'
+  }
+
+  getHandleTypes(): Array<string> {
+      return ['MODAL_READY']
   }
 
   async handle(message: BaseMessage): Promise<void> {
@@ -67,13 +70,5 @@ export class ModalReadyHandler implements MessageHandler {
     
     // 可以在这里添加具体的初始化逻辑
     // 比如加载用户数据、设置主题等
-  }
-
-  private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    if (this.context) {
-      this.context.log(`[${this.name}] ${message}`, level)
-    } else {
-      console.log(`[${this.name}] ${message}`)
-    }
   }
 }

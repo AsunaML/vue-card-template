@@ -32,12 +32,14 @@ export class HandlerRegistryImpl implements HandlerRegistry {
     this.updateTypeIndex()
   }
 
-  getHandler(messageType: string): MessageHandler | null {
+  getFirstHandler(messageType: string): MessageHandler | null {
     const handlers = this.handlersByType.get(messageType) || []
-    
-    // 返回第一个能处理该类型的处理器
-    // 如果需要多个处理器处理同一类型，可以修改这里的逻辑
     return handlers.length > 0 ? handlers[0] : null
+  }
+
+  getAllHandler(messageType: string): Array<MessageHandler> | null {
+    const handlers = this.handlersByType.get(messageType) || []
+    return handlers.length > 0 ? handlers : null
   }
 
   getAllHandlers(): MessageHandler[] {
@@ -54,23 +56,11 @@ export class HandlerRegistryImpl implements HandlerRegistry {
     this.handlersByType.clear()
 
     for (const handler of this.handlers.values()) {
-      // 检查所有可能的消息类型
-      // 这里使用一个简单的启发式方法：检查常见的消息类型
-      const commonTypes = [
-        'CLOSE_MODAL',
-        'MODAL_READY', 
-        'MODAL_ERROR',
-        'DATA_SYNC',
-        'REPLY'
-      ]
-
-      for (const type of commonTypes) {
-        if (handler.canHandle(type)) {
-          if (!this.handlersByType.has(type)) {
-            this.handlersByType.set(type, [])
-          }
-          this.handlersByType.get(type)!.push(handler)
+      for (const type of handler.getHandleTypes()) {
+        if (!this.handlersByType.has(type)){
+          this.handlersByType.set(type, [])
         }
+        this.handlersByType.get(type)?.push(handler)
       }
     }
   }
@@ -111,13 +101,6 @@ export class MessageHandlerFactoryImpl implements MessageHandlerFactory {
   private registerBuiltinHandlers(): void {
     // 这里可以注册内置的处理器创建函数
     // 实际的处理器实现将在 handlers/ 目录中
-    
-    // 注册关闭模态框处理器创建函数
-    this.handlerCreators.set('CLOSE_MODAL', (_context) => {
-      // 这里会导入并创建 CloseModalHandler
-      // 为了避免循环依赖，实际实现可能需要延迟加载
-      return null as any // 占位符，实际实现在 handlers 模块中
-    })
   }
 
   createHandler(type: string, context: MessageHandlerContext): MessageHandler | null {

@@ -92,7 +92,7 @@ export class MessageBusImpl implements MessageBus {
       }
 
       // 查找并执行处理器
-      const handler = this.handlerRegistry.getHandler(message.type)
+      const handler = this.handlerRegistry.getFirstHandler(message.type)
       if (!handler) {
         this.log(`No handler found for message type: ${message.type}`, 'warn')
         

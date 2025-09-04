@@ -4,18 +4,21 @@
  * 处理来自客户端的关闭模态框请求
  */
 
-import type { BaseMessage, MessageHandler, MessageHandlerContext, CloseModalMessage } from '../types'
+import { MessageHandler } from '../types'
+import type { BaseMessage, CloseModalMessage } from '../types'
 
-export class CloseModalHandler implements MessageHandler {
-  name = 'CloseModalHandler'
-  private context?: MessageHandlerContext
+export class CloseModalHandler extends MessageHandler {
 
-  setContext(context: MessageHandlerContext): void {
-    this.context = context
+  constructor() {
+    super()
   }
 
-  canHandle(type: string): boolean {
-    return type === 'CLOSE_MODAL'
+  getHandlerName() {
+    return 'CloseModalHandler'
+  }
+
+  getHandleTypes(): Array<string> {
+      return ['CLOSE_MODAL']
   }
 
   async handle(message: BaseMessage): Promise<void> {
@@ -55,14 +58,6 @@ export class CloseModalHandler implements MessageHandler {
       if (message.needReply && this.context) {
         await this.context.replyError(message, errorMessage)
       }
-    }
-  }
-
-  private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    if (this.context) {
-      this.context.log(`[${this.name}] ${message}`, level)
-    } else {
-      console.log(`[${this.name}] ${message}`)
     }
   }
 }
