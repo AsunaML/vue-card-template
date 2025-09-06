@@ -28,6 +28,10 @@
 
 - 鼓励使用 `tailwindcss` 编写 `css` 以节省 `token`
 
+## Essential Development Dependencies
+
+**CRITICAL**: Development relies heavily on the `playwright` mcp tool for debugging. Always check if this tool is available when starting development.
+
 ## PostMessage Communication Architecture Design
 
 ### Background
