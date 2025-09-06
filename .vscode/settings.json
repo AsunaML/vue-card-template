@@ -1,3 +1,7 @@
 {
-  "liveServer.settings.root": "/dist"
+  "liveServer.settings.root": "/dist",
+  // 使用空格代替 Tab
+  "editor.insertSpaces": true,
+  // 一个缩进级别 = 2 个空格
+  "editor.tabSize": 2,
 }

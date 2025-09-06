@@ -1,102 +1,106 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { createClientMessageBus, sendCloseModal, sendModalReady, sendModalError, type MessageBus } from '../communication'
+import { ref, onMounted, onUnmounted } from "vue";
+import { type MessageBusConfig, HandlerRegistryImpl, MessageBusImpl } from "../communication";
+import { sendModalReady, sendCloseModal, sendModalError } from "./scripts/send/send";
 
-const isInIframe = window !== window.top
-const testHeight = ref('500px') // 固定高度测试
-const showModal = ref(false) // 悬浮窗显示状态
-const windowSize = ref({ width: 0, height: 0 }) // 窗口尺寸状态
+const isInIframe = window !== window.top;
+const testHeight = ref("500px"); // 固定高度测试
+const innerModalState = ref(false); // 悬浮窗显示状态
+const windowSize = ref({ width: 0, height: 0 }); // 窗口尺寸状态
 
 // 使用新的通信架构
-let messageBus: MessageBus | null = null
+const messageBusConfig: Partial<MessageBusConfig> = {
+  environment: "client",
+  debugMode: true,
+  allowedOrigins: ["*"],
+};
+let handlerRegistry: HandlerRegistryImpl | null = null
+let messageBus: MessageBusImpl | null = null
 
 const openModal = () => {
-  showModal.value = true
-  console.log('Opening modal')
-}
+  innerModalState.value = true;
+  console.log("Opening modal");
+};
 
 const closeModal = async () => {
-  showModal.value = false
-  console.log('Closing modal')
-  
+  innerModalState.value = false;
+  console.log("Closing modal");
+
   // 使用新的通信架构发送关闭消息
   if (messageBus) {
     try {
       await sendCloseModal(messageBus, 'user action')
     } catch (error) {
-      console.error('Failed to send close modal message:', error)
+      console.error("Failed to send close modal message:", error);
     }
   }
-}
+};
 
 const updateWindowSize = () => {
   windowSize.value = {
     width: window.innerWidth,
-    height: window.innerHeight
-  }
-}
+    height: window.innerHeight,
+  };
+};
 
 // 键盘事件处理
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
-    closeModal()
+  if (event.key === "Escape") {
+    closeModal();
   }
-}
+};
 
 onMounted(async () => {
-  console.log('[Vue App] 应用启动，iframe检测:', isInIframe)
-  
-  updateWindowSize()
-  console.log('[Vue App] 窗口尺寸:', windowSize.value.width, 'x', windowSize.value.height)
-  
+  console.log("[Vue App] 应用启动，iframe检测:", isInIframe);
+
+  updateWindowSize();
+  console.log("[Vue App] 窗口尺寸:", windowSize.value.width, "x", windowSize.value.height);
+
   if (isInIframe) {
-    console.log('[Vue App] 运行在iframe环境中，初始化消息总线...')
-    
+    console.log("[Vue App] 运行在iframe环境中，初始化消息总线...");
+
     // 初始化客户端消息总线
     try {
-      const { messageBus: clientBus } = createClientMessageBus({
-        debugMode: true
-      })
-      messageBus = clientBus
-      
+      handlerRegistry = new HandlerRegistryImpl();
+      messageBus = new MessageBusImpl(messageBusConfig, handlerRegistry);
+
       // 发送应用就绪消息，包含客户端信息
       await sendModalReady(messageBus, {
         width: windowSize.value.width,
         height: windowSize.value.height,
-        userAgent: navigator.userAgent
-      })
-      
-      console.log('[Vue App] 消息总线初始化完成，已发送就绪信号')
-      
+        userAgent: navigator.userAgent,
+      });
+
+      console.log("[Vue App] 消息总线初始化完成，已发送就绪信号");
     } catch (error) {
-      console.error('[Vue App] 消息总线初始化失败:', error)
+      console.error("[Vue App] 消息总线初始化失败:", error);
       // 如果消息总线失败，发送错误报告
       if (messageBus) {
-        await sendModalError(messageBus, error instanceof Error ? error : String(error))
+        await sendModalError(messageBus, error instanceof Error ? error : String(error));
       }
     }
   } else {
-    console.log('[Vue App] 运行在直接浏览器中')
+    console.log("[Vue App] 运行在直接浏览器中");
   }
-  
+
   // 添加事件监听
-  window.addEventListener('resize', updateWindowSize)
-  window.addEventListener('keydown', handleKeyDown)
-})
+  window.addEventListener("resize", updateWindowSize);
+  window.addEventListener("keydown", handleKeyDown);
+});
 
 onUnmounted(() => {
   // 清理事件监听
-  window.removeEventListener('resize', updateWindowSize)
-  window.removeEventListener('keydown', handleKeyDown)
-  
+  window.removeEventListener("resize", updateWindowSize);
+  window.removeEventListener("keydown", handleKeyDown);
+
   // 销毁消息总线
   if (messageBus) {
-    messageBus.destroy()
-    messageBus = null
+    messageBus.destroy();
+    messageBus = null;
   }
-  
-  console.log('[Vue App] 应用卸载，消息总线已清理')
-})
+
+  console.log("[Vue App] 应用卸载，消息总线已清理");
+});
 </script>
 
 <template>
@@ -108,29 +112,29 @@ onUnmounted(() => {
           <h2>🎭 Vue Character Card Template</h2>
           <button @click="closeModal" class="close-btn" title="关闭 (ESC)">×</button>
         </div>
-        
+
         <div class="modal-body">
           <div class="card-demo">
             <h3>✨ 角色卡片模板演示</h3>
             <p>这是一个运行在全屏悬浮窗中的 Vue 3 + TypeScript 角色卡片模板。</p>
-            
+
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">运行环境:</span>
-                <span class="value">{{ isInIframe ? '🪟 Iframe (全屏)' : '🌐 直接浏览器' }}</span>
+                <span class="value">{{ isInIframe ? "🪟 Iframe (全屏)" : "🌐 直接浏览器" }}</span>
               </div>
-              
+
               <div class="info-item">
                 <span class="label">窗口尺寸:</span>
                 <span class="value">{{ windowSize.width }} × {{ windowSize.height }}</span>
               </div>
-              
+
               <div class="info-item">
                 <span class="label">架构:</span>
                 <span class="value">双层架构 (Trigger + Modal)</span>
               </div>
             </div>
-            
+
             <div class="features">
               <h4>🚀 模板特性</h4>
               <ul>
@@ -141,19 +145,13 @@ onUnmounted(() => {
                 <li>✅ 响应式设计和热重载</li>
               </ul>
             </div>
-            
+
             <div class="demo-actions">
-              <button @click="testHeight = testHeight === '500px' ? '800px' : '500px'" class="action-btn secondary">
-                📏 测试高度切换
-              </button>
-              
-              <button @click="openModal" class="action-btn secondary">
-                🔄 切换内部悬浮窗
-              </button>
-              
-              <button @click="closeModal" class="action-btn primary">
-                🚪 关闭悬浮窗
-              </button>
+              <button @click="testHeight = testHeight === '500px' ? '800px' : '500px'" class="action-btn secondary">📏 测试高度切换</button>
+
+              <button @click="openModal" class="action-btn secondary">🔄 切换内部悬浮窗</button>
+
+              <button @click="closeModal" class="action-btn primary">🚪 关闭悬浮窗</button>
             </div>
           </div>
         </div>
@@ -161,20 +159,20 @@ onUnmounted(() => {
     </div>
 
     <!-- 内部测试悬浮窗 (用于演示多层模态框) -->
-    <div v-if="showModal" class="inner-modal-overlay" @click.self="() => showModal = false">
+    <div v-if="innerModalState" class="inner-modal-overlay" @click.self="() => (innerModalState = false)">
       <div class="inner-modal-content">
         <div class="inner-modal-header">
           <h3>内部测试悬浮窗</h3>
-          <button @click="showModal = false" class="close-btn">×</button>
+          <button @click="innerModalState = false" class="close-btn">×</button>
         </div>
-        
+
         <div class="inner-modal-body">
           <p>这是一个内部测试悬浮窗，演示多层模态框的效果。</p>
           <p>当前测试高度: {{ testHeight }}</p>
           <p>你可以看到，这个内部悬浮窗同样可以正常显示。</p>
-          
+
           <div class="inner-modal-actions">
-            <button @click="showModal = false" class="action-btn secondary">关闭内部悬浮窗</button>
+            <button @click="innerModalState = false" class="action-btn secondary">关闭内部悬浮窗</button>
           </div>
         </div>
       </div>
@@ -185,7 +183,7 @@ onUnmounted(() => {
 <style scoped>
 /* Vue Modal App 样式 */
 .vue-modal-app {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -426,16 +424,20 @@ onUnmounted(() => {
 
 /* 动画 */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(30px) scale(0.95);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
@@ -447,24 +449,24 @@ onUnmounted(() => {
     width: 95%;
     max-height: 95vh;
   }
-  
+
   .modal-header {
     padding: 20px;
   }
-  
+
   .modal-body {
     padding: 24px 20px;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .demo-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .action-btn {
     width: 100%;
     max-width: 200px;

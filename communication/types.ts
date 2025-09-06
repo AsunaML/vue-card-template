@@ -68,21 +68,18 @@ export interface DataSyncMessage extends BaseMessage {
 // ========== 消息处理器接口 ==========
 
 export interface MessageHandlerContext {
-  /** 发送回复消息 */
-  reply(message: BaseMessage, data?: any): Promise<void>
-  /** 发送错误回复 */
-  replyError(message: BaseMessage, error: string | Error): Promise<void>
   /** 记录日志 */
   log(message: string, level?: 'info' | 'warn' | 'error'): void
 }
 
-export abstract class MessageHandler {
+export abstract class MessageHandler<C extends MessageHandlerContext = MessageHandlerContext> {
 
   public readonly name: string
-  protected context?: MessageHandlerContext
+  protected context: C
 
-  constructor() {
+  constructor(context: C) {
     this.name = this.getHandlerName()
+    this.context = context
   }
 
   /** 获取处理器名称 */
@@ -97,18 +94,6 @@ export abstract class MessageHandler {
     /** 检查是否能处理该消息类型 */
   canHandle(type: string): boolean {
     return this.getHandleTypes().includes(type)
-  }
-
-  setContext(context: MessageHandlerContext): void {
-    this.context = context
-  }
-
-  protected log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    if (this.context) {
-      this.context.log(`[${this.name}] ${message}`, level)
-    } else {
-      console.log(`[${this.name}] ${message}`)
-    }
   }
 }
 
@@ -154,11 +139,6 @@ export interface HandlerRegistry {
   getAllHandlers(): MessageHandler[]
   /** 清空所有处理器 */
   clear(): void
-}
-
-export interface MessageHandlerFactory {
-  /** 创建处理器 */
-  createHandler(type: string, context: MessageHandlerContext): MessageHandler | null
 }
 
 // ========== 错误类型 ==========

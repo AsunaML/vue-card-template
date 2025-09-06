@@ -4,14 +4,10 @@
  * 处理来自客户端的模态框就绪通知
  */
 
-import { MessageHandler } from '../types'
-import type { BaseMessage, ModalReadyMessage } from '../types'
+import type { BaseMessage, ModalReadyMessage } from '../../communication/types'
+import { ServerMessageHandler } from './ServerMessageHandler'
 
-export class ModalReadyHandler extends MessageHandler {
-
-  constructor() {
-    super()
-  }
+export class ModalReadyHandler extends ServerMessageHandler {
 
   getHandlerName() {
     return 'ModalReadyHandler'
@@ -21,38 +17,32 @@ export class ModalReadyHandler extends MessageHandler {
       return ['MODAL_READY']
   }
 
-  async handle(message: BaseMessage): Promise<void> {
+  async handle(message: BaseMessage): Promise<any> {
     const readyMessage = message as ModalReadyMessage
     
-    this.log('Vue application is ready')
+    this.context.log('Vue application is ready')
 
     try {
       // 记录客户端信息（如果有的话）
       if (readyMessage.data?.clientInfo) {
         const { width, height, userAgent } = readyMessage.data.clientInfo
-        this.log(`Client info: ${width}x${height}, UA: ${userAgent.substring(0, 50)}...`)
+        this.context.log(`Client info: ${width}x${height}, UA: ${userAgent.substring(0, 50)}...`)
       }
 
       // 执行模态框就绪后的初始化操作
       await this.performReadyActions(readyMessage)
 
-      this.log('Modal ready processing completed')
+      this.context.log('Modal ready processing completed')
 
       // 如果需要回复，发送确认
-      if (message.needReply && this.context) {
-        await this.context.reply(message, { 
+      return { 
           status: 'acknowledged',
           timestamp: Date.now()
-        })
-      }
-
+        }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.log(`Failed to process modal ready: ${errorMessage}`, 'error')
-
-      if (message.needReply && this.context) {
-        await this.context.replyError(message, errorMessage)
-      }
+      this.context.log(`Failed to process modal ready: ${errorMessage}`, 'error')
+      throw error
     }
   }
 
@@ -66,7 +56,7 @@ export class ModalReadyHandler extends MessageHandler {
     // 示例：发送欢迎数据到客户端（如果需要的话）
     // 注意：这里不直接发送消息，而是由调用者决定如何处理
     
-    this.log('Performing modal ready actions...')
+    this.context.log('Performing modal ready actions...')
     
     // 可以在这里添加具体的初始化逻辑
     // 比如加载用户数据、设置主题等

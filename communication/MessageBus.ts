@@ -11,7 +11,6 @@ import type {
   MessageBus,
   MessageBusConfig,
   MessageHandler,
-  MessageHandlerContext,
   HandlerRegistry
 } from './types'
 import {
@@ -30,11 +29,6 @@ export class MessageBusImpl implements MessageBus {
     timerId: number
   }>()
   private destroyed = false
-  private context: MessageHandlerContext = {
-    reply: (original, data) => this.sendReply(original, data),
-    replyError: (original, error) => this.sendReplyError(original, error),
-    log: (msg, level) => this.log(msg, level)
- }
 
   constructor(
     config: Partial<MessageBusConfig>,
@@ -103,11 +97,7 @@ export class MessageBusImpl implements MessageBus {
       }
 
       try {
-        // 临时设置处理器上下文（如果处理器需要的话）
-        if ('setContext' in handler && typeof handler.setContext === 'function') {
-          (handler as any).setContext(this.context)
-        }
-
+        // 处理消息
         const result = await handler.handle(message)
 
         // 如果需要回复且处理器返回了结果

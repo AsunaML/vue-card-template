@@ -4,7 +4,7 @@
  * 管理所有消息处理器的注册、注销和查找
  */
 
-import type { MessageHandler, HandlerRegistry, MessageHandlerFactory, MessageHandlerContext } from './types'
+import type { MessageHandler, HandlerRegistry } from './types'
 
 export class HandlerRegistryImpl implements HandlerRegistry {
   private handlers = new Map<string, MessageHandler>()
@@ -83,59 +83,4 @@ export class HandlerRegistryImpl implements HandlerRegistry {
       typeMapping
     }
   }
-}
-
-/**
- * MessageHandlerFactory - 消息处理器工厂
- * 
- * 根据消息类型创建对应的处理器实例
- */
-export class MessageHandlerFactoryImpl implements MessageHandlerFactory {
-  private handlerCreators = new Map<string, (context: MessageHandlerContext) => MessageHandler>()
-
-  constructor() {
-    // 注册默认的处理器创建函数
-    this.registerBuiltinHandlers()
-  }
-
-  private registerBuiltinHandlers(): void {
-    // 这里可以注册内置的处理器创建函数
-    // 实际的处理器实现将在 handlers/ 目录中
-  }
-
-  createHandler(type: string, context: MessageHandlerContext): MessageHandler | null {
-    const creator = this.handlerCreators.get(type)
-    return creator ? creator(context) : null
-  }
-
-  /**
-   * 注册处理器创建函数
-   */
-  registerHandlerCreator(
-    type: string, 
-    creator: (context: MessageHandlerContext) => MessageHandler
-  ): void {
-    this.handlerCreators.set(type, creator)
-  }
-
-  /**
-   * 获取所有支持的消息类型
-   */
-  getSupportedTypes(): string[] {
-    return Array.from(this.handlerCreators.keys())
-  }
-}
-
-/**
- * 创建默认的处理器注册表实例
- */
-export function createHandlerRegistry(): HandlerRegistry {
-  return new HandlerRegistryImpl()
-}
-
-/**
- * 创建默认的处理器工厂实例
- */
-export function createHandlerFactory(): MessageHandlerFactory {
-  return new MessageHandlerFactoryImpl()
 }
