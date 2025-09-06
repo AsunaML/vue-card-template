@@ -75,7 +75,7 @@ export interface MessageHandlerContext {
 export abstract class MessageHandler<C extends MessageHandlerContext = MessageHandlerContext> {
 
   public readonly name: string
-  protected context: C
+  protected readonly context: C
 
   constructor(context: C) {
     this.name = this.getHandlerName()

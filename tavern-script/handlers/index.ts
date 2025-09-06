@@ -13,7 +13,7 @@ import { ServerMessageHandler } from './ServerMessageHandler'
 import { CloseModalHandler } from './CloseModalHandler'
 import { ModalReadyHandler } from './ModalReadyHandler'  
 import { ErrorHandler } from './ErrorHandler'
-import { ServerContext } from '../types'
+import { ServerContext } from '../ServerContext'
 
 /**
  * 创建处理器的工厂函数映射
