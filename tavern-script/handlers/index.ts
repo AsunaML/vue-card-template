@@ -13,6 +13,7 @@ import { ServerMessageHandler } from './ServerMessageHandler'
 import { CloseModalHandler } from './CloseModalHandler'
 import { ModalReadyHandler } from './ModalReadyHandler'  
 import { ErrorHandler } from './ErrorHandler'
+import { ShowModalHandler } from './ShowModalHandler'
 import { ServerContext } from '../ServerContext'
 
 /**
@@ -25,6 +26,7 @@ const quickLoop: Record<string, new (ctx: ServerContext) => ServerMessageHandler
     'CLOSE_MODAL': CloseModalHandler,
     'MODAL_READY': ModalReadyHandler,
     'MODAL_ERROR': ErrorHandler,
+    'SHOW_MODAL': ShowModalHandler,
 }
 
 type handlerCreatorsType = Record<string, (context: ServerContext) => ServerMessageHandler>

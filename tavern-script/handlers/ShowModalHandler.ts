@@ -1,13 +1,13 @@
 /**
- * CloseModalHandler - 处理关闭模态框消息
+ * ShowModalHandler - 处理打开模态框消息
  *
- * 处理来自客户端的关闭模态框请求
+ * 处理来自客户端的打开模态框请求
  */
 
 import type { BaseMessage, CloseModalMessage } from "../../communication/types";
 import { ServerMessageHandler } from "./ServerMessageHandler";
 
-export class CloseModalHandler extends ServerMessageHandler {
+export class ShowModalHandler extends ServerMessageHandler {
   getHandlerName() {
     return "ShowModalHandler";
   }
