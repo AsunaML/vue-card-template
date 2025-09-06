@@ -28,43 +28,6 @@ export interface MessageReply extends BaseMessage {
   error?: string
 }
 
-// ========== 具体消息类型 ==========
-
-export interface CloseModalMessage extends BaseMessage {
-  type: 'CLOSE_MODAL'
-  data?: {
-    reason?: string
-  }
-}
-
-export interface ModalReadyMessage extends BaseMessage {
-  type: 'MODAL_READY'
-  data?: {
-    clientInfo?: {
-      width: number
-      height: number
-      userAgent: string
-    }
-  }
-}
-
-export interface ModalErrorMessage extends BaseMessage {
-  type: 'MODAL_ERROR'
-  data: {
-    message: string
-    stack?: string
-  }
-}
-
-export interface DataSyncMessage extends BaseMessage {
-  type: 'DATA_SYNC'
-  data: {
-    action: 'request' | 'response'
-    dataType: string
-    payload?: any
-  }
-}
-
 // ========== 消息处理器接口 ==========
 
 export interface MessageHandlerContext {

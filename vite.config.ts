@@ -18,17 +18,28 @@ const organizeDistPlugin = () => {
         mkdirSync(modalDir, { recursive: true });
         mkdirSync(scriptsDir, { recursive: true });
         
-        console.log('📦 编译 TypeScript 脚本...');
+        console.log('📦 编译和打包 Tavern Scripts...');
         
-        // 编译 tavern-script 目录下的 TypeScript 文件
+        // 1. 使用 esbuild 打包成单文件 (推荐方式)
         try {
-          execSync('npx tsc --project tsconfig.scripts.json --noEmitOnError false', { 
+          execSync('node scripts/bundle-tavern-script.js', { 
             stdio: 'inherit',
             cwd: __dirname 
           });
-          console.log('✓ TypeScript 脚本编译完成');
+          console.log('✅ 单文件打包完成');
         } catch (error) {
-          console.warn('⚠ TypeScript 脚本有类型错误，但JS文件已生成');
+          console.warn('⚠ 单文件打包失败，回退到 TypeScript 编译');
+          
+          // 2. 回退：传统 TypeScript 编译 (兼容性)
+          try {
+            execSync('npx tsc --project tsconfig.scripts.json --noEmitOnError false', { 
+              stdio: 'inherit',
+              cwd: __dirname 
+            });
+            console.log('✓ TypeScript 脚本编译完成 (回退模式)');
+          } catch (tsError) {
+            console.warn('⚠ TypeScript 脚本有类型错误，但JS文件已生成');
+          }
         }
         
         // 复制 trigger.html 到 modal 目录

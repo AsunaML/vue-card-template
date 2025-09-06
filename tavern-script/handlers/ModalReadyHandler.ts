@@ -4,8 +4,19 @@
  * 处理来自客户端的模态框就绪通知
  */
 
-import type { BaseMessage, ModalReadyMessage } from '../../communication/types'
+import type { BaseMessage } from '../../communication/types'
 import { ServerMessageHandler } from './ServerMessageHandler'
+
+interface ModalReadyMessage extends BaseMessage {
+  type: 'MODAL_READY'
+  data?: {
+    clientInfo?: {
+      width: number
+      height: number
+      userAgent: string
+    }
+  }
+}
 
 export class ModalReadyHandler extends ServerMessageHandler {
 

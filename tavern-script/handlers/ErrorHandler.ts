@@ -7,6 +7,14 @@
 import type { BaseMessage } from '../../communication/types'
 import { ServerMessageHandler } from './ServerMessageHandler'
 
+interface ModalErrorMessage extends BaseMessage {
+  type: 'MODAL_ERROR'
+  data: {
+    message: string
+    stack?: string
+  }
+}
+
 export class ErrorHandler extends ServerMessageHandler {
 
   getHandlerName() {

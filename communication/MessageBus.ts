@@ -64,9 +64,13 @@ export class MessageBusImpl implements MessageBus {
   private async handleMessage(event: MessageEvent): Promise<void> {
     if (this.destroyed) return
 
+    const self = (window.top || window).location.origin
+
     try {
       // 验证消息来源
-      if (!this.isOriginAllowed(event.origin)) {
+      // event.origin === self: Trigger html 发出的事件
+      // event.origin === "null": 未设置 sandbox allow-origin 的 iframe 所发出的事件
+      if (event.origin !== self && event.origin !== "null" && !this.isOriginAllowed(event.origin)) {
         this.log(`Rejected message from unauthorized origin: ${event.origin}`, 'warn')
         return
       }

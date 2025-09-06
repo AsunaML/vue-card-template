@@ -4,8 +4,15 @@
  * 处理来自客户端的打开模态框请求
  */
 
-import type { BaseMessage, CloseModalMessage } from "../../communication/types";
+import type { BaseMessage } from "../../communication/types";
 import { ServerMessageHandler } from "./ServerMessageHandler";
+
+interface ShowModalMessage extends BaseMessage {
+  type: 'SHOW_MODAL'
+  data?: {
+    reason?: string
+  }
+}
 
 export class ShowModalHandler extends ServerMessageHandler {
   getHandlerName() {
@@ -17,9 +24,9 @@ export class ShowModalHandler extends ServerMessageHandler {
   }
 
   async handle(message: BaseMessage): Promise<any> {
-    const closeMessage = message as CloseModalMessage;
+    const showMessage = message as ShowModalMessage;
 
-    this.context.log(`Processing show modal request. Reason: ${closeMessage.data?.reason || "user action"}`);
+    this.context.log(`Processing show modal request. Reason: ${showMessage.data?.reason || "user action"}`);
 
     try {
       // 检查是否有模态框正在显示

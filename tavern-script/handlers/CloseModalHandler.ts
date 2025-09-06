@@ -4,8 +4,15 @@
  * 处理来自客户端的关闭模态框请求
  */
 
-import type { BaseMessage, CloseModalMessage } from "../../communication/types";
+import type { BaseMessage } from "../../communication/types";
 import { ServerMessageHandler } from "./ServerMessageHandler";
+
+interface CloseModalMessage extends BaseMessage {
+  type: 'CLOSE_MODAL'
+  data?: {
+    reason?: string
+  }
+}
 
 export class CloseModalHandler extends ServerMessageHandler {
   getHandlerName() {

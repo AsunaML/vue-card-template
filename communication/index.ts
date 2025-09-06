@@ -9,10 +9,6 @@
 export type {
   BaseMessage,
   MessageReply,
-  CloseModalMessage,
-  ModalReadyMessage,
-  ModalErrorMessage,
-  DataSyncMessage,
   MessageHandlerContext,
   MessageBus,
   MessageBusConfig,
