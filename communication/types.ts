@@ -17,6 +17,8 @@ export interface BaseMessage {
   timestamp: number
   /** 是否需要回复 */
   needReply?: boolean
+  /** 针对这条消息的超时，单位豪秒 */
+  timeoutMS?: number
 }
 
 export interface MessageReply extends BaseMessage {
