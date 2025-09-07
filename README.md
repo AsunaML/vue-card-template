@@ -11,3 +11,5 @@
 - Live Preview
 
 - Vue(Official)
+
+- Tailwind CSS IntelliSense
