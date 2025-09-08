@@ -2,6 +2,7 @@
 todo
 references/
 user-test/
+.playwright-mcp/
 
 # Logs
 logs

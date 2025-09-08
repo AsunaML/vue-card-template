@@ -89,6 +89,11 @@ export default defineConfig({
     organizeDistPlugin()
   ],
   
+  // CSS 配置
+  css: {
+    postcss: './postcss.config.js',
+  },
+  
   // 开发服务器配置
   server: {
     host: '127.0.0.1',
