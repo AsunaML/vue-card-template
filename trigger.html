@@ -169,11 +169,7 @@
                         
                         try {
                             // eventEmit('vue_modal:show');
-                            window.parent.postMessage({
-                              id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-                              type: 'SHOW_MODAL',
-                              timestamp: Date.now()
-                            }, '*');
+                            (window.top ?? window).vueModalController.showModal()
                             showMessage('✓ 已发送打开悬浮窗请求', 'success');
                         } catch (error) {
                             console.error('[Vue Modal Trigger] 发送事件失败:', error);

@@ -1,29 +1,25 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, provide } from "vue";
-import { type MessageBusConfig, HandlerRegistryImpl, MessageBusImpl } from "../communication";
-import { sendModalReady, sendModalError } from "./scripts/send/send";
+import { ref, onMounted, onUnmounted, provide } from "vue";
 import TabLayout from "./components/TabLayout.vue";
+import * as Comlink from "comlink"
+import { type Expose } from "./scripts/ExposeTypes";
+import type { ExposeInterface } from "../tavern-script/modal-controller"
 
 const isInIframe = window !== window.top;
 const windowSize = ref({ width: 0, height: 0 });
 
-// 全局消息总线配置和实例
-const messageBusConfig: Partial<MessageBusConfig> = {
-  environment: "client",
-  debugMode: true,
-  allowedOrigins: ["*"],
-};
+let parentApi: Expose = { data: null };
 
-// 使用reactive对象来管理全局状态
-const globalState = reactive({
-  messageBus: null as MessageBusImpl | null,
-  handlerRegistry: null as HandlerRegistryImpl | null
+window.addEventListener("message", (event) => {
+  console.log('获取到端口消息')
+  const port = event.data.port as MessagePort;
+  parentApi.data = Comlink.wrap<ExposeInterface>(port);
 });
 
 // 提供全局服务
 provide('isInIframe', isInIframe);
 provide('windowSize', windowSize);
-provide('globalState', globalState);
+provide('parentApi', parentApi);
 
 const updateWindowSize = () => {
   windowSize.value = {
@@ -32,6 +28,9 @@ const updateWindowSize = () => {
   };
 };
 
+// 告诉父页面“我准备好了”
+window.parent.postMessage("ready", "*");
+
 onMounted(async () => {
   console.log("[Vue App] 应用启动，iframe检测:", isInIframe);
 
@@ -39,40 +38,19 @@ onMounted(async () => {
   console.log("[Vue App] 窗口尺寸:", windowSize.value.width, "x", windowSize.value.height);
 
   if (isInIframe) {
-    console.log("[Vue App] 运行在iframe环境中，初始化消息总线...");
-
-    try {
-      globalState.handlerRegistry = new HandlerRegistryImpl();
-      globalState.messageBus = new MessageBusImpl(messageBusConfig, globalState.handlerRegistry);
-
-      // 发送应用就绪消息，包含客户端信息
-      await sendModalReady(globalState.messageBus, {
-        width: windowSize.value.width,
-        height: windowSize.value.height,
-        userAgent: navigator.userAgent,
-      });
-
-      console.log("[Vue App] 消息总线初始化完成，已发送就绪信号");
-    } catch (error) {
-      console.error("[Vue App] 消息总线初始化失败:", error);
-      if (globalState.messageBus) {
-        await sendModalError(globalState.messageBus, error instanceof Error ? error : String(error));
-      }
-    }
+    console.log("[Vue App] 运行在iframe环境中");
   } else {
     console.log("[Vue App] 运行在直接浏览器中");
   }
+
+  window.parent.postMessage("ready", "*");
+  console.log('Send ready message over.')
 
   window.addEventListener("resize", updateWindowSize);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", updateWindowSize);
-
-  if (globalState.messageBus) {
-    globalState.messageBus.destroy();
-    globalState.messageBus = null;
-  }
 
   console.log("[Vue App] 应用卸载，消息总线已清理");
 });

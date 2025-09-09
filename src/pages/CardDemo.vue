@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, inject } from "vue";
-import { sendCloseModal } from "../scripts/send/send";
 
 const globalState = inject('globalState', { messageBus: null });
 const testHeight = ref("500px");
@@ -20,11 +19,6 @@ const closeMainModal = async () => {
   console.log("Closing main modal");
 
   if (globalState?.messageBus) {
-    try {
-      await sendCloseModal(globalState.messageBus, 'user action from demo page')
-    } catch (error) {
-      console.error("Failed to send close modal message:", error);
-    }
   }
 };
 </script>

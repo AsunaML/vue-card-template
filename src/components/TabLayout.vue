@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, inject } from "vue";
-import { sendCloseModal } from "../scripts/send/send";
 import HomePage from "../pages/HomePage.vue";
 import CardDemo from "../pages/CardDemo.vue";
 import Settings from "../pages/Settings.vue";
+import { type Expose } from "../scripts/ExposeTypes";
 
-const globalState = inject('globalState', { messageBus: null });
+const parentApi = inject<Expose | null>('parentApi', null);
 
 interface Tab {
   id: string;
@@ -29,15 +29,33 @@ const switchTab = (tabId: string) => {
 
 const closeModal = async () => {
   console.log("关闭主悬浮窗");
-
-  if (globalState?.messageBus) {
-    try {
-      await sendCloseModal(globalState.messageBus, 'user action from tab layout')
-    } catch (error) {
-      console.error("Failed to send close modal message:", error);
+  if (parentApi === null) {
+    console.log('parentApi is null')
+  }
+  else {
+    if (parentApi.data === null) {
+      console.log('parentApi.data is null')
+    }
+    else {
+      parentApi.data.closeModal()
     }
   }
 };
+
+async function incCounter() {
+  if (parentApi !== null && parentApi.data !== null) {
+    await parentApi.data.incCounter()
+    console.log('increment done')
+  }
+}
+
+async function getCount() {
+  if (parentApi !== null && parentApi.data !== null) {
+    const value = await parentApi.data.getCount()
+    console.log(`count is ${value}`)
+  }
+}
+
 </script>
 
 <template>
@@ -68,6 +86,20 @@ const closeModal = async () => {
           </div>
           
           <div class="flex items-center px-4">
+            <button 
+              @click="incCounter" 
+              class="bg-white/10 border border-white/20 text-white text-lg cursor-pointer p-2 rounded-md transition-all duration-200 w-9 h-9 flex items-center justify-center hover:bg-red-500/30 hover:border-red-500/50 hover:scale-105" 
+              title="增加"    
+            >
+              Increment
+            </button>
+            <button 
+              @click="getCount" 
+              class="bg-white/10 border border-white/20 text-white text-lg cursor-pointer p-2 rounded-md transition-all duration-200 w-9 h-9 flex items-center justify-center hover:bg-red-500/30 hover:border-red-500/50 hover:scale-105" 
+              title="获取"    
+            >
+              Get
+            </button>
             <button 
               @click="closeModal" 
               class="bg-white/10 border border-white/20 text-white text-lg cursor-pointer p-2 rounded-md transition-all duration-200 w-9 h-9 flex items-center justify-center hover:bg-red-500/30 hover:border-red-500/50 hover:scale-105" 

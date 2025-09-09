@@ -1,0 +1,1 @@
+export type MyRef<T> = { data: T }
