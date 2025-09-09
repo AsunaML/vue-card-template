@@ -121,7 +121,7 @@ export abstract class BaseModalController<ET extends BaseInterface> {
     // 发送 MessageChannel 的端口过去
     const iframeEl = this.currentIFrame[0] as HTMLIFrameElement; // 这里的iframe
     iframeEl.contentWindow!.postMessage({ port: channel.port2 }, "*", [channel.port2]); // 这里将通道端口2的所有权移交给iframe了
-    console.log("Send port to iframe");
+    this.log("已向iframe发送端口");
   }
 
   public showModal(): void {
@@ -172,11 +172,11 @@ export abstract class BaseModalController<ET extends BaseInterface> {
       if (!this.hasBind) {
         (window.top ?? window).addEventListener("message", (event) => {
           if (event.data === "ready") {
-            console.log(`接收到iframe已经加载完毕的信号, 开始向iframe传递端口: ${event.data}`);
+            this.log(`接收到iframe已经加载完毕的信号, 开始向iframe传递端口: ${event.data}`);
             this.messageEventCallback();
           }
         });
-        console.log("绑定message监听器成功");
+        this.log("绑定message监听器成功");
         this.hasBind = true;
       }
 

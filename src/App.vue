@@ -1,39 +1,37 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide } from "vue";
 import TabLayout from "./components/TabLayout.vue";
-import * as Comlink from "comlink"
+import * as Comlink from "comlink";
 import { type Expose } from "./scripts/ExposeTypes";
-import type { ExposeInterface } from "../tavern-script/ModalController"
-
+import type { ExposeInterface } from "../tavern-script/ModalController";
+import log from './scripts/log'
 
 const isInIframe = window !== window.top;
 let parentApi: Expose = { data: null };
 
-window.addEventListener("message", (event) => {
-  console.log('获取到端口消息');
-  const port = event.data.port as MessagePort;
-  parentApi.data = Comlink.wrap<ExposeInterface>(port);
-});
-
 // 提供全局服务
-provide('isInIframe', isInIframe);
-provide('parentApi', parentApi);
+provide("isInIframe", isInIframe);
+provide("parentApi", parentApi);
 
 onMounted(async () => {
-
   if (isInIframe) {
-    console.log("[Vue App] 运行在iframe环境中");
+    log("[Vue App] 运行在iframe环境中");
+    window.addEventListener("message", (event) => {
+      log("[Vue App] 从获取到端口消息");
+      const port = event.data.port as MessagePort;
+      parentApi.data = Comlink.wrap<ExposeInterface>(port);
+    });
   } else {
-    console.log("[Vue App] 运行在直接浏览器中");
+    log("[Vue App] 运行在直接浏览器中");
   }
 
   // 发送iframe就绪消息, 用于获取消息通道端口
   window.parent.postMessage("ready", "*");
-  console.log('发送iframe就绪消息完毕')
+  log("发送iframe就绪消息完毕");
 });
 
 onUnmounted(() => {
-  console.log("[Vue App] 应用已卸载");
+  log("[Vue App] 应用已卸载");
 });
 </script>
 
