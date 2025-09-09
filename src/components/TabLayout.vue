@@ -63,6 +63,13 @@ async function getCount() {
   }
 }
 
+async function getName() {
+  if (parentApi !== null && parentApi.data !== null) {
+    const value = await parentApi.data.tavernHelper.getCharData()
+    log(`name is ${value?.name}`)
+  }
+}
+
 </script>
 
 <template>
@@ -93,6 +100,13 @@ async function getCount() {
           </div>
           
           <div class="flex items-center px-4">
+            <button 
+              @click="getName" 
+              class="bg-white/10 mr-4 border border-white/20 text-white text-lg cursor-pointer rounded-md transition-all duration-200 w-12 h-9 flex items-center justify-center hover:bg-red-500/30 hover:border-red-500/50 hover:scale-105" 
+              title="增加"    
+            >
+              Name
+            </button>
             <button 
               @click="incCounter" 
               class="bg-white/10 mr-4 border border-white/20 text-white text-lg cursor-pointer rounded-md transition-all duration-200 w-12 h-9 flex items-center justify-center hover:bg-red-500/30 hover:border-red-500/50 hover:scale-105" 

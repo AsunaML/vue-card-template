@@ -24,7 +24,7 @@
   },
   "include": [
     "tavern-script/**/*",
-    "communication/**/*"
+    "@types/**/*"
   ],
   "exclude": [
     "node_modules",
