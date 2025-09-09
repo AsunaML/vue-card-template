@@ -9,28 +9,27 @@
 import * as Comlink from "comlink";
 
 // 导入新的通信架构
-interface VueModalConfig {
+export interface ModalConfig {
   modalUrl: string;
-  debugMode: boolean;
 }
 
-export interface ExposeInterface {
+export interface BaseInterface {
   showModal(): void;
   closeModal(): void;
-  incCounter(): void;
-  getCount(): number;
 }
 
-class VueModalController {
-  private config: VueModalConfig;
-  public currentModal: JQuery<HTMLElement> | null = null;
-  private testCounter: number = 0;
+export abstract class BaseModalController<ET extends BaseInterface> {
+  /**
+   * 基础窗口控制器, 负责最基本的初始化, 窗口弹出, 销毁功能, 不涉及具体的业务逻辑.
+   */
+  private config: ModalConfig;
+  private currentIFrame: JQuery<HTMLElement> | null = null;
+  private currentModal: JQuery<HTMLElement> | null = null;
   private hasBind: boolean = false;
 
-  constructor(config?: Partial<VueModalConfig>) {
+  constructor(config?: Partial<ModalConfig>) {
     this.config = {
-      modalUrl: "http://localhost:5500/",
-      debugMode: true,
+      modalUrl: "null",
       ...config,
     };
 
@@ -38,14 +37,14 @@ class VueModalController {
   }
 
   private async initialize(): Promise<void> {
-    this.log("Vue Modal Controller 初始化...");
+    this.log("开始初始化");
 
     // 检查环境
     if (!this.checkEnvironment()) {
       return;
     }
 
-    this.log("Vue Modal Controller 初始化完成");
+    this.log("初始化完成");
   }
 
   private checkEnvironment(): boolean {
@@ -77,14 +76,9 @@ class VueModalController {
   }
 
   public async destroy(): Promise<void> {
-    this.log("销毁 Vue Modal Controller v2...");
-
-    // 关闭悬浮窗
-    // await this.hideModal();
-
-    // 销毁消息总线
-
-    this.log("Vue Modal Controller 已销毁");
+    this.log("销毁中");
+    // do something
+    this.log("已销毁");
   }
 
   public log(message: string, level?: "info" | "warn" | "error"): void {
@@ -92,7 +86,7 @@ class VueModalController {
       level = "info";
     }
 
-    const prefix = "[Vue Modal Controller]";
+    const prefix = "[Modal Controller]";
     const timestamp = new Date().toLocaleTimeString();
     const fullMessage = `${prefix} [${timestamp}] ${message}`;
 
@@ -108,21 +102,35 @@ class VueModalController {
     }
   }
 
-  public getCount(): number {
-    return this.testCounter;
+  abstract getExpose(): ET
+
+  private messageEventCallback() {
+    if (this.currentIFrame === null) {
+      const errorMsg = "出现未知错误, 在接收到iframe回调时, 持有的iframe引用为null";
+      this.log(errorMsg, "error");
+      return;
+    }
+
+    // 建立消息通道(MessageChannel 是轻量级的，用完可以新建)
+    const channel = new MessageChannel();
+
+    // 暴露 API 给 iframe
+    const exposed: ET = this.getExpose();
+    Comlink.expose(exposed, channel.port1);
+
+    // 发送 MessageChannel 的端口过去
+    const iframeEl = this.currentIFrame[0] as HTMLIFrameElement; // 这里的iframe
+    iframeEl.contentWindow!.postMessage({ port: channel.port2 }, "*", [channel.port2]); // 这里将通道端口2的所有权移交给iframe了
+    console.log("Send port to iframe");
   }
 
-  public incCounter(): void {
-    this.testCounter += 1;
-  }
-
-  public showModal() {
-    this.log(`Showing modal`);
+  public showModal(): void {
+    this.log("开始显示主窗口");
 
     try {
       // 检查是否有模态框正在显示
       if (this.currentModal && this.currentModal.is(":visible")) {
-        return { success: true };
+        return;
       }
 
       // 创建悬浮窗容器
@@ -157,66 +165,40 @@ class VueModalController {
       $("body").append($modalContainer);
 
       // 保存引用
+      this.currentIFrame = $iframe;
       this.currentModal = $modalContainer;
 
+      // 在顶层window上添加事件监听
       if (!this.hasBind) {
         (window.top ?? window).addEventListener("message", (event) => {
           if (event.data === "ready") {
-            // iframe说它准备好了
-            console.log(`recive ready message: ${event.data}`);
-
-            // 建立消息通道(MessageChannel 是轻量级的，用完可以新建)
-            const channel = new MessageChannel();
-
-            // 暴露 API 给 iframe
-            const exposed: ExposeInterface = {
-              showModal: this.showModal.bind(this),
-              closeModal: this.closeModal.bind(this),
-              incCounter: this.incCounter.bind(this),
-              getCount: this.getCount.bind(this),
-            };
-            Comlink.expose(exposed, channel.port1);
-
-            // 发送 MessageChannel 的端口过去
-            const iframeEl = $iframe[0] as HTMLIFrameElement;
-            iframeEl.contentWindow!.postMessage({ port: channel.port2 }, "*", [channel.port2]);
-            console.log("Send port to iframe");
+            console.log(`接收到iframe已经加载完毕的信号, 开始向iframe传递端口: ${event.data}`);
+            this.messageEventCallback();
           }
         });
-        console.log('绑定message监听器成功')
-        this.hasBind = true
-      }
-      else {
-        console.warn('出现重复绑定监听器现象')
+        console.log("绑定message监听器成功");
+        this.hasBind = true;
       }
 
-      this.log("Vue 悬浮窗显示成功 ✓");
-
-      // 如果需要回复，发送成功确认
-      return { success: true };
+      this.log("主窗口显示成功 ✓");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      this.log(`Failed to close modal: ${errorMessage}`, "error");
       throw error;
     }
   }
 
   public closeModal() {
-    this.log(`Closing modal`);
+    this.log(`关闭主窗口中`);
 
     try {
       // 检查是否有模态框正在显示
       if (!this.currentModal) {
-        this.log("No modal is currently visible", "warn");
+        this.log("未持有窗口的引用, 错误调用.", "warn");
         return;
       }
       if (!this.currentModal.is(":visible")) {
-        this.log("No modal is currently visible", "warn");
+        this.log("主窗口非显示中, 错误调用", "warn");
         return;
       }
-
-      // 关闭模态框
-      this.log("关闭 Vue 悬浮窗中...");
 
       try {
         // 移除键盘事件监听
@@ -227,56 +209,18 @@ class VueModalController {
           if (this.currentModal) {
             this.currentModal.remove();
             this.currentModal = null;
+            this.log("主窗口已关闭");
           }
         });
       } catch (error) {
         this.log(`关闭悬浮窗失败: ${error}`, "error");
 
-        // 强制移除
+        // 强制移除持有的变量
         this.currentModal.remove();
         this.currentModal = null;
       }
-
-      this.log("Vue 悬浮窗已关闭 ✓");
-
-      // 如果需要回复，发送成功确认
-      return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      this.log(`Failed to close modal: ${errorMessage}`, "error");
       throw error;
     }
   }
 }
-
-// 全局实例管理（避免与原有控制器冲突）
-declare global {
-  interface Window {
-    vueModalController?: VueModalController;
-  }
-}
-
-// 自动初始化
-(async function () {
-  try {
-    // 防止重复初始化
-    if (window.vueModalController) {
-      console.log("[Vue Modal] 控制器已存在，销毁旧实例...");
-      await window.vueModalController.destroy();
-    }
-
-    // 创建新实例
-    const obj = new VueModalController();
-    console.log(`new obj: ${obj}`);
-    const topWindow = window.top ?? window;
-    topWindow.vueModalController = obj;
-
-    console.log("[Vue Modal] 控制器已就绪，等待触发事件...");
-  } catch (error) {
-    console.error("[Vue Modal] 初始化失败:", error);
-  }
-})();
-
-// 导出用于 TypeScript 编译
-export { VueModalController };
-export default VueModalController;

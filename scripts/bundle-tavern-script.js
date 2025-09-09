@@ -20,11 +20,11 @@ async function bundleTavernScript() {
   try {
     const result = await build({
       // 入口文件
-      entryPoints: [resolve(projectRoot, 'tavern-script/modal-controller.ts')],
+      entryPoints: [resolve(projectRoot, 'tavern-script/ModalController.ts')],
       
       // 输出配置
       bundle: true,                    // 打包所有依赖
-      outfile: resolve(projectRoot, 'dist/scripts/modal-controller-bundle.js'),
+      outfile: resolve(projectRoot, 'dist/scripts/ModalController-bundle.js'),
       
       // 平台配置
       platform: 'browser',            // 浏览器环境
