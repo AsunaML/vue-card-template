@@ -1,6 +1,6 @@
 /// <reference types="jquery" />
 /// <reference path="../@types/iframe/exported.sillytavern.d.ts" />
-/// <reference path="../@types/iframe/exported.tavernhelper.d.ts" />
+import { TavernHelper } from './provied/TavernHelper'
 
 // SillyTavern 环境类型定义
 declare global {

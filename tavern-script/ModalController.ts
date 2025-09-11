@@ -1,5 +1,5 @@
 /// <reference path="../@types/iframe/exported.sillytavern.d.ts" />
-/// <reference path="../@types/iframe/exported.tavernhelper.d.ts" />
+import { type TavernHelper } from './provied/TavernHelper';
 
 import { type ModalConfig, BaseModalController, type BaseInterface } from './AbsModalController'
 
@@ -7,8 +7,7 @@ import { type ModalConfig, BaseModalController, type BaseInterface } from './Abs
 export interface ExposeInterface extends BaseInterface {
   incCounter(): void;
   getCount(): number;
-  sillyTavern: typeof SillyTavern
-  tavernHelper: typeof TavernHelper
+  tavernHelper: TavernHelper
 }
 
 
@@ -26,7 +25,6 @@ class ModalController extends BaseModalController<ExposeInterface> {
       closeModal: this.closeModal.bind(this),
       incCounter: this.incCounter.bind(this),
       getCount: this.getCount.bind(this),
-      sillyTavern: window.SillyTavern,
       tavernHelper: window.TavernHelper
     };
   }

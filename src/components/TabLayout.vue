@@ -65,7 +65,7 @@ async function getCount() {
 
 async function getName() {
   if (parentApi !== null && parentApi.data !== null) {
-    const value = await parentApi.data.tavernHelper.getCharData()
+    const value = await parentApi.data.tavernHelper.getCharData('current')
     log(`name is ${value?.name}`)
   }
 }

@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, provide } from "vue";
 import TabLayout from "./components/TabLayout.vue";
 import * as Comlink from "comlink";
-import { type Expose } from "./scripts/ExposeTypes";
+import { type Remoteize, type Expose } from "./scripts/ExposeTypes";
 import type { ExposeInterface } from "../tavern-script/ModalController";
 import log from './scripts/log'
 
@@ -19,7 +19,7 @@ onMounted(async () => {
     window.addEventListener("message", (event) => {
       log("[Vue App] 从获取到端口消息");
       const port = event.data.port as MessagePort;
-      parentApi.data = Comlink.wrap<ExposeInterface>(port);
+      parentApi.data = Comlink.wrap<ExposeInterface>(port) as unknown as Remoteize<ExposeInterface>;
     });
   } else {
     log("[Vue App] 运行在直接浏览器中");
